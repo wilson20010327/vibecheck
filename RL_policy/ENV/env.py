@@ -46,32 +46,39 @@ class RLEnv:
         if (current_state[0] >self.discrete_size):
             return 'm'
         return 'f' # in_hole
-            
+    def reward_function(self,action):
+        gt_action = self.get_gt_action(self.current_state)
+        return 1 if gt_action == action else -1        
     def step(self, action):
       next_state = self.action2state(action)
       groundtruth_label = self.get_ground_truth_label(self.current_state)
 
       sampled_label = self.get_model_prediction(groundtruth_label)  # apply observation model based-on model accuracy
-      gt_action = self.get_gt_action(self.current_state)
-      reward = 1 if gt_action == action else 0
+
+      reward = self.reward_function(action)
       self.current_state = next_state
       done = groundtruth_label == 2
       if done:
-         reward += 10
+         reward = 10
       return sampled_label, reward, done, {}
   
 if __name__=='__main__':
     env = RLEnv()
-    for i in range(2000):
-        action = random.choice(['z','x','n','m'])
+    tot_reward = 0
+    trajectory = ['z','z','z','z','z','z','z','z','z','z','x','x','x','x','x','x','x','x','x','x','n']
+    for i in trajectory:
+        action = i
         print('current_state:',env.current_state)
         print('action:',action)
         observation, reward, done, info = env.step(action)
+        tot_reward+=reward
         print('observation:',observation)
         print('reward:',reward)
+        print('tot_reward:',tot_reward)
         print('done:',done)
         if done:
             env.reset()
-            print('reset',i)
+            tot_reward = 0
+            print('reset')
             break
         print('-----------------------------')
