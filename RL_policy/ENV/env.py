@@ -5,6 +5,7 @@ class RLEnv:
     def __init__(self):
         self.current_state = [0,0] #[ x_count, z_count]
         self.labellist=['diagonal','one_line','in_hole']
+        self.action_label = ['z','n','x','m']
         self.predifction_confusion_matrix = np.array([[29,1,0],[3,27,0],[0,0,1]])
         self.discrete_size=10
     def get_ground_truth_label(self,current_state):
