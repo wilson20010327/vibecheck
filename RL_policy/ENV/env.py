@@ -1,6 +1,6 @@
 import numpy as np
 import random
-
+from collections import deque
 class RLEnv:
     def __init__(self):
         self.current_state = [0,0] #[ x_count, z_count]
@@ -8,6 +8,14 @@ class RLEnv:
         self.action_label = ['z','n','x','m']
         self.predifction_confusion_matrix = np.array([[29,1,0],[3,27,0],[0,0,1]])
         self.discrete_size=10
+        self.observation=deque([-1 for i in range(10)],maxlen=10)
+        
+    def get_observation(self):
+        temp=[]
+        for i in range(len(self.observation)):
+            temp.append(self.observation[i])
+        return np.array(temp).astype('float32')
+           
     def get_ground_truth_label(self,current_state):
         if current_state[1]<self.discrete_size:
             return 0 # diagonal
@@ -17,6 +25,7 @@ class RLEnv:
             return 2 # in_hole
     def reset(self):
         self.current_state = [0,0] #[ x_count, z_count]
+        self.observation=deque([-1 for i in range(10)],maxlen=10)
         return
     def action2state(self,action):
         next_state = self.current_state.copy()
@@ -51,18 +60,19 @@ class RLEnv:
         gt_action = self.get_gt_action(self.current_state)
         return 1 if gt_action == action else -1        
     def step(self, action):
-      next_state = self.action2state(action)
-      groundtruth_label = self.get_ground_truth_label(self.current_state)
+        next_state = self.action2state(self.action_label[action])
+        groundtruth_label = self.get_ground_truth_label(self.current_state)
 
-      sampled_label = self.get_model_prediction(groundtruth_label)  # apply observation model based-on model accuracy
-
-      reward = self.reward_function(action)
-      self.current_state = next_state
-      done = groundtruth_label == 2
-      if done:
-         reward = 10
-      return sampled_label, reward, done, {}
-  
+        sampled_label = self.get_model_prediction(groundtruth_label)  # apply observation model based-on model accuracy
+        self.observation.append(sampled_label)
+        
+        reward = self.reward_function(action)
+        self.current_state = next_state
+        done = groundtruth_label == 2
+        if done:
+            reward = 10
+            return self.get_observation(), reward, 1, {}
+        return self.get_observation(), reward, 0, {}
 if __name__=='__main__':
     env = RLEnv()
     tot_reward = 0
