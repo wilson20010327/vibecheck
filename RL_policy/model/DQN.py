@@ -24,7 +24,7 @@ class DQN(nn.Module):
         return x
 
 class DQNAgent:
-    def __init__(self, state_size=10, action_size=4, hidden_size=64, lr=0.01, gamma=0.99, epsilon=0.9,tau=0.1):
+    def __init__(self,result_path,test=False ,state_size=10, action_size=4, hidden_size=64, lr=0.01, gamma=0.99, epsilon=0.9,tau=0.1):
         self.state_size = state_size
         self.action_size = action_size
         self.hidden_size = hidden_size
@@ -34,16 +34,22 @@ class DQNAgent:
         self.tau=tau
         self.epsilon_min = 0.1
         self.epsilon_decay = 0.995
-        
-        self.Q = DQN(state_size, action_size, hidden_size)
-        self.target_Q=DQN(state_size, action_size, hidden_size)
-        hard_update_target_network(self.target_Q,self.Q )
-        self.target_Q.eval()
-        self.optimizer = optim.Adam(self.Q.parameters(), lr=lr)
-        self.criterion = nn.MSELoss()
+        self.test=test
+        self.result_path = result_path
+        if self.test:
+            self.Q = DQN(state_size, action_size, hidden_size)
+            self.epsilon = 0
+            self.load_model()
+        if not self.test:
+            self.Q = DQN(state_size, action_size, hidden_size)
+            self.target_Q=DQN(state_size, action_size, hidden_size)
+            hard_update_target_network(self.target_Q,self.Q )
+            self.target_Q.eval()
+            self.optimizer = optim.Adam(self.Q.parameters(), lr=lr)
+            self.criterion = nn.MSELoss()
 
-        self.memory = ReplayMemory(10000)
-        
+            self.memory = ReplayMemory(10000)
+            
      
     def add_memory(self, state, action, reward, next_state, done):
         self.memory.push(state, action, reward, next_state, done)
@@ -56,16 +62,16 @@ class DQNAgent:
     def act(self, state):
         state=torch.tensor(state)
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
-        if torch.rand(1).item() < self.epsilon:
+        if not self.test and torch.rand(1).item() < self.epsilon:
             print('random')
             action=torch.randint(0, self.action_size, (1,))[0]
             
-            return action
+            return action , False 
         else:
             print('greedy')
             with torch.no_grad():
                 action=torch.argmax(self.Q(state)).item()
-                return action
+                return action, True 
 
     def train(self ):
         state, action, reward, next_state, done = self.memory.sample(32)
@@ -96,3 +102,10 @@ class DQNAgent:
         soft_update_target_network(self.target_Q,self.Q,self.tau)
         
         return loss.item()
+    def save(self):
+        torch.save(self.Q.state_dict(), self.result_path+'model.pth')
+        print('model saved')
+    def load_model(self):
+        self.Q.load_state_dict(torch.load(self.result_path+'model.pth'))
+        self.Q.eval()
+        print('model loaded')
