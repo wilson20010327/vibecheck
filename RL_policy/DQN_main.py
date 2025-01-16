@@ -24,9 +24,9 @@ def save_trajectory(trajectory, episode_num, path):
     
 def main():
     env=RLEnv()
-    agent=DQNAgent(test=TEST,result_path=result_path)
+    agent=DQNAgent(test=TEST,result_path=result_path,action_size=env.action_size,state_size=env.observation_size)
     sucess=0
-    for j in range(10):
+    for j in range(100):
         trajectory = [] 
         tot_reward = 0
         env.reset()
@@ -35,8 +35,9 @@ def main():
             current = env.get_observation()
             action,greedy = agent.act(current)
             next, reward, done, info = env.step(action)
+            loss='none'
             if not agent.test:
-                agent.step(current, action, reward, next, done)
+                loss=agent.step(current, action, reward, next, done)
             tot_reward+=reward
             # print('ground true:',env.current_state)
             # print('next:',next)
@@ -51,7 +52,8 @@ def main():
                 'reward': reward,
                 'tot_reward': tot_reward,
                 'next_state': next.tolist() if isinstance(next, np.ndarray) else next,
-                'done': done
+                'done': done,
+                'loss': loss
             })
             if done:
                 sucess+=1

@@ -8,12 +8,15 @@ class RLEnv:
         self.action_label = ['z','n','x','m']
         self.predifction_confusion_matrix = np.array([[29,1,0],[3,27,0],[0,0,1]])
         self.discrete_size=10
-        self.observation=deque([-1 for i in range(10)],maxlen=10)
-        
+        self.observation=deque([[0,0,0] for i in range(10)],maxlen=10)
+        self.observation_size = 30
+        self.action_size = 4
     def get_observation(self):
         temp=[]
         for i in range(len(self.observation)):
-            temp.append(self.observation[i])
+            temp.append(self.observation[i][0])
+            temp.append(self.observation[i][1])
+            temp.append(self.observation[i][2])
         return np.array(temp).astype('float32')
            
     def get_ground_truth_label(self,current_state):
@@ -25,7 +28,7 @@ class RLEnv:
             return 2 # in_hole
     def reset(self):
         self.current_state = [0,0] #[ x_count, z_count]
-        self.observation=deque([-1 for i in range(10)],maxlen=10)
+        self.observation=deque([[0,0,0] for i in range(10)],maxlen=10)
         return
     def action2state(self,action):
         next_state = self.current_state.copy()
@@ -62,9 +65,10 @@ class RLEnv:
     def step(self, action):
         next_state = self.action2state(self.action_label[action])
         groundtruth_label = self.get_ground_truth_label(self.current_state)
-
+        temp=[0,0,0]
         sampled_label = self.get_model_prediction(groundtruth_label)  # apply observation model based-on model accuracy
-        self.observation.append(sampled_label)
+        temp[sampled_label]=1
+        self.observation.append(temp)
         
         reward = self.reward_function(action)
         self.current_state = next_state
@@ -76,9 +80,10 @@ class RLEnv:
 if __name__=='__main__':
     env = RLEnv()
     tot_reward = 0
-    trajectory = ['z','z','z','z','z','z','z','z','z','z','x','x','x','x','x','x','x','x','x','x','n']
-    for i in trajectory:
-        action = i
+    step = 100
+    print(env.get_observation())
+    for i in range(step):
+        action = random.randint(0,3)
         print('current_state:',env.current_state)
         print('action:',action)
         observation, reward, done, info = env.step(action)

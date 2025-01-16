@@ -56,19 +56,21 @@ class DQNAgent:
         
     def step(self,state, action, reward, next_state, done):
         self.add_memory(state, action, reward, next_state, done)
+        loss=0
         if len(self.memory) > 100:
-            print('loss: ',self.train())    
-            
+            loss=self.train()
+            # print('loss: ',loss)    
+        return loss    
     def act(self, state):
         state=torch.tensor(state)
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
         if not self.test and torch.rand(1).item() < self.epsilon:
-            print('random')
+            # print('random')
             action=torch.randint(0, self.action_size, (1,))[0]
             
             return action , False 
         else:
-            print('greedy')
+            # print('greedy')
             with torch.no_grad():
                 action=torch.argmax(self.Q(state)).item()
                 return action, True 
