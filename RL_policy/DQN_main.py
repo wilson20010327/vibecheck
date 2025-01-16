@@ -6,7 +6,7 @@ import pandas as pd
 import json
 
 TEST = True
-result_path = './result/Jan_16/'
+result_path = './result/Jan_16_4/'
 if not TEST and os.path.exists(result_path):
     raise FileExistsError(f"The directory '{result_path}' already exists.")
 elif not TEST:
@@ -26,12 +26,12 @@ def main():
     env=RLEnv()
     agent=DQNAgent(test=TEST,result_path=result_path,action_size=env.action_size,state_size=env.observation_size)
     sucess=0
-    for j in range(100):
+    for j in range(1000):
         trajectory = [] 
         tot_reward = 0
         env.reset()
         
-        for i in range(1000):
+        for i in range(50):
             current = env.get_observation()
             action,greedy = agent.act(current)
             next, reward, done, info = env.step(action)
