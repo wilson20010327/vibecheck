@@ -24,7 +24,7 @@ class DQN(nn.Module):
         return x
 
 class DQNAgent:
-    def __init__(self,result_path,test=False ,state_size=10, action_size=4, hidden_size=32, lr=0.01, gamma=0.99, epsilon=0.99,tau=0.1):
+    def __init__(self,result_path,test=False ,state_size=10, action_size=4, hidden_size=16, lr=0.01, gamma=0.99, epsilon=0.99,tau=0.1):
         self.state_size = state_size
         self.action_size = action_size
         self.hidden_size = hidden_size
@@ -57,7 +57,7 @@ class DQNAgent:
     def step(self,state, action, reward, next_state, done):
         self.add_memory(state, action, reward, next_state, done)
         loss=None
-        if len(self.memory) > 1000:
+        if len(self.memory) >= 64:
             loss=self.train()
             # print('loss: ',loss)    
         return loss    
@@ -76,7 +76,7 @@ class DQNAgent:
                 return action, True 
 
     def train(self ):
-        state, action, reward, next_state, done = self.memory.sample(100)
+        state, action, reward, next_state, done = self.memory.sample(64)
         state=torch.tensor(state)
         action=torch.tensor(action).reshape(-1,1)
         reward=torch.tensor(reward).squeeze()

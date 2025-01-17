@@ -6,7 +6,7 @@ import pandas as pd
 import json
 
 TEST = True
-result_path = './result/Jan_16_4/'
+result_path = './result/Jan_17_2/'
 if not TEST and os.path.exists(result_path):
     raise FileExistsError(f"The directory '{result_path}' already exists.")
 elif not TEST:
