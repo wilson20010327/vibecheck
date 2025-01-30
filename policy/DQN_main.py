@@ -6,8 +6,8 @@ import pandas as pd
 import json
 
 TEST = True
-RANDOM = False
-result_path = './result/Jan_23_2/'
+RANDOM = True
+result_path = './result/RL/Jan_24_copy/'
 if not TEST and os.path.exists(result_path):
     raise FileExistsError(f"The directory '{result_path}' already exists.")
 elif not TEST:
@@ -29,8 +29,8 @@ def main():
     sucess=0
     step_schedule = []
     big_triangular = 0
-    if not TEST:
-        big_triangular=200
+    # if not TEST:
+    #     big_triangular=200
     for i in range (big_triangular):
         step_schedule.append(1000)
     for i in range (1000-big_triangular):

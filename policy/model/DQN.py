@@ -24,7 +24,7 @@ class DQN(nn.Module):
         return x
 
 class DQNAgent:
-    def __init__(self,result_path,test=False ,state_size=10, action_size=4, hidden_size=16, lr=0.01, gamma=0.99, epsilon=0.99,tau=0.1):
+    def __init__(self,result_path,test=False ,state_size=10, action_size=4, hidden_size=16, lr=0.001, gamma=0.99, epsilon=1.0,tau=0.1):
         self.state_size = state_size
         self.action_size = action_size
         self.hidden_size = hidden_size

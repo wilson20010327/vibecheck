@@ -11,10 +11,10 @@ class RLEnv:
         self.euler=[0,0,0] # [x,y,z] unit:degree
         self.transformMatrix = np.eye(3,3)
         self.labellist=['diagonal','one_line','in_hole']
-        self.action_label = ['z','n','x','m']
+        self.action_label = ['z','n','x','m','f']
         self.predifction_confusion_matrix = np.array([
-            [29,1,0],
-            [3,27,0],
+            [1,0,0],
+            [0,1,0],
             [0, 0,1]])
         self.discrete_size=10
         self.observation=deque([[0,0,0] for i in range(10)],maxlen=10)
@@ -23,6 +23,7 @@ class RLEnv:
         self.random_flag=random_flag
         if self.random_flag:
             self.euler=self.random_euler()
+        self.model_detetion()
     def random_euler(self):
         step_size = 45 / self.discrete_size
 
@@ -60,49 +61,30 @@ class RLEnv:
         if self.random_flag:
             self.euler=self.random_euler()
         self.observation=deque([[0,0,0] for i in range(10)],maxlen=10)
+        
+        self.model_detetion()
         return
     def action2state(self,action):
         next_state = self.current_state.copy()
-        next_marix=self.transformMatrix.copy()
         next_euler=self.euler.copy()
-        R0=0
         if action=='z':
             next_state[1]+=1
             next_euler[2]+=45/self.discrete_size
-            # R0 = transforms3d.axangles.axangle2mat([0,0,1], (45)*math.pi/180/self.discrete_size)
-            # next_marix=R0@next_marix
+
         elif action=='n':
             next_state[1]-=1
             next_euler[2]-=45/self.discrete_size
-            # R0 = transforms3d.axangles.axangle2mat([0,0,1], (-45)*math.pi/180/self.discrete_size)
-            # next_marix=R0@next_marix
+
         elif action=='x':
             next_state[0]+=1
             next_euler[0]+=45/self.discrete_size
-            # R0 = transforms3d.axangles.axangle2mat([1,0,0], (45)*math.pi/180/self.discrete_size)
-            # next_marix=R0@next_marix
+
         elif action=='m':
             next_state[0]-=1
             next_euler[0]-=45/self.discrete_size
-            # R0 = transforms3d.axangles.axangle2mat([1,0,0], (-45)*math.pi/180/self.discrete_size)
-            # next_marix=R0@next_marix
+
         next_euler = [self.normalize_angle(angle) for angle in next_euler]
-        # next_state[0] = min(max(0,next_state[0]),self.discrete_size)
-        # next_state[1] = min(max(0,next_state[1]),self.discrete_size)
-        # print('R0:\n',R0)
-        # print('next_marix:\n',next_marix)
-
-        # Convert from radians to degrees
-        # Extract angles back
-        # extracted_theta_z = np.arctan2(next_marix[1, 0], next_marix[0, 0])
-        # extracted_theta_x = np.arctan2(next_marix[2, 1], next_marix[2, 2])
-
-        # Convert back to degrees
-        # extracted_theta_z_deg = np.degrees(extracted_theta_z)
-        # extracted_theta_x_deg = np.degrees(extracted_theta_x)
-        # print('extracted_theta_z_deg:',extracted_theta_z_deg)
-        # print('extracted_theta_x_deg:',extracted_theta_x_deg)
-        # self.transformMatrix=next_marix
+       
         return next_state,next_euler
     def get_model_prediction(self,groundtruth_label):
         dist=self.predifction_confusion_matrix[groundtruth_label]  
@@ -123,9 +105,8 @@ class RLEnv:
     def reward_function(self,action):
         gt_action = self.get_gt_action(self.euler)
         # print('gt_action:',gt_action)
-        return 1 if gt_action == self.action_label[action] else -1        
-    def step(self, action):
-        next_state,next_euler = self.action2state(self.action_label[action])
+        return 1 if gt_action == self.action_label[action] else -1
+    def model_detetion(self):
         groundtruth_label = self.get_ground_truth_label(self.euler)
         # print('previous euler:',self.euler)
         # print('groundtruth_label:',groundtruth_label)
@@ -133,11 +114,15 @@ class RLEnv:
         temp=[0,0,0]
         sampled_label = self.get_model_prediction(groundtruth_label)  # apply observation model based-on model accuracy
         temp[sampled_label]=1
-        self.observation.append(temp)
-        
+        self.observation.append(temp)   
+        return groundtruth_label     
+    def step(self, action):
+        next_state,next_euler = self.action2state(self.action_label[action])
         reward = self.reward_function(action)
         self.current_state = next_state
         self.euler=next_euler
+        
+        groundtruth_label=self.model_detetion()
         # print('after action euler:',self.euler)
         done = groundtruth_label == 2
         if done:
