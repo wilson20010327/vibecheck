@@ -7,7 +7,7 @@ import json
 
 
 RANDOM = True
-result_path = './result/IL/training/3/'
+result_path = './result/IL/training/5/'
 if os.path.exists(result_path):
     raise FileExistsError(f"The directory '{result_path}' already exists.")
 
@@ -16,7 +16,7 @@ print(f"Directory '{result_path}' created successfully.")
     
 def get_true_action_from_env(env):
     euler=env.euler
-    chat_to_index = {'z':0,'n':1,'x':2,'m':3,'f':4}
+    chat_to_index = {'z':0,'x':1,'f':2}
     return chat_to_index[env.get_gt_action(euler)]
    
 def save_trajectory(trajectory, episode_num, path):
@@ -37,7 +37,7 @@ def main():
     for i in range (big_triangular):
         step_schedule.append(1000)
     for i in range (epoch-big_triangular):
-        step_schedule.append(110)
+        step_schedule.append(40)
         
     for j in range(epoch):
         trajectory = [] 

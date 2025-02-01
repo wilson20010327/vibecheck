@@ -11,15 +11,19 @@ class RLEnv:
         self.euler=[0,0,0] # [x,y,z] unit:degree
         self.transformMatrix = np.eye(3,3)
         self.labellist=['diagonal','one_line','in_hole']
-        self.action_label = ['z','n','x','m','f']
+        self.action_label = ['z','x','f']
         self.predifction_confusion_matrix = np.array([
-            [1,0,0],
-            [0,1,0],
-            [0, 0,1]])
+            [78,22,0],
+            [11,73,16],
+            [2, 1,97]])
+        # self.predifction_confusion_matrix = np.array([
+        #     [1,0,0],
+        #     [0,1,0],
+        #     [0, 0,1]])
         self.discrete_size=10
         self.observation=deque([[0,0,0] for i in range(10)],maxlen=10)
         self.observation_size = 30
-        self.action_size = 4
+        self.action_size = 3
         self.random_flag=random_flag
         if self.random_flag:
             self.euler=self.random_euler()
@@ -28,7 +32,7 @@ class RLEnv:
         step_size = 45 / self.discrete_size
 
         # Generate random x and z values in multiples of step_size within [-180, 180]
-        x=random.randint(-180/step_size, 180/step_size)*step_size
+        x=random.randint(-45/step_size, 45/step_size)*step_size
         z=random.randint(-180/step_size, 180/step_size)*step_size
 
         # y is fixed to 0
@@ -49,7 +53,7 @@ class RLEnv:
             angle += 360
         return angle       
     def get_ground_truth_label(self,euler):
-        if euler[2]!=45:
+        if euler[2]!=45 and euler[2]!=-45 and euler[2]!=135 and euler[2]!=-135:
             return 0 # diagonal
         elif euler[0]!= 45:
             return 1 # one_line
@@ -71,17 +75,9 @@ class RLEnv:
             next_state[1]+=1
             next_euler[2]+=45/self.discrete_size
 
-        elif action=='n':
-            next_state[1]-=1
-            next_euler[2]-=45/self.discrete_size
-
         elif action=='x':
             next_state[0]+=1
             next_euler[0]+=45/self.discrete_size
-
-        elif action=='m':
-            next_state[0]-=1
-            next_euler[0]-=45/self.discrete_size
 
         next_euler = [self.normalize_angle(angle) for angle in next_euler]
        
@@ -91,15 +87,18 @@ class RLEnv:
         selected_index = random.choices(range(len(dist)), weights=dist)[0]
         return selected_index 
     def get_gt_action(self,euler):
-
-        if euler[2] <45:
+        if euler[2]!=45 and euler[2]!=-45 and euler[2]!=135 and euler[2]!=-135:
             return 'z'
-        if euler[2] >45:
-            return 'n'        
-        if euler[0] <45:
+        elif euler[0]!= 45:
             return 'x'
-        if euler[0] >45:
-            return 'm'
+        # if euler[2] <45:
+        #     return 'z'
+        # if euler[2] >45:
+        #     return 'n'        
+        # if euler[0] <45:
+        #     return 'x'
+        # if euler[0] >45:
+        #     return 'm'
 
         return 'f' # in_hole
     def reward_function(self,action):

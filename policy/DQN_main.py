@@ -7,7 +7,7 @@ import json
 
 TEST = True
 RANDOM = True
-result_path = './result/RL/Jan_24_copy/'
+result_path = './result/RL/Jan_29_simple/'
 if not TEST and os.path.exists(result_path):
     raise FileExistsError(f"The directory '{result_path}' already exists.")
 elif not TEST:
@@ -25,7 +25,7 @@ def save_trajectory(trajectory, episode_num, path):
     
 def main():
     env=RLEnv(random_flag=RANDOM)
-    agent=DQNAgent(test=TEST,result_path=result_path,action_size=env.action_size,state_size=env.observation_size)
+    agent=DQNAgent(test=TEST,result_path=result_path,action_size=env.action_size-1,state_size=env.observation_size)
     sucess=0
     step_schedule = []
     big_triangular = 0
