@@ -7,7 +7,8 @@ import json
 
 
 RANDOM = True
-result_path = './result/IL/training/5/'
+PERFECT=False
+result_path = './result/IL/training/non-perfect/'
 if os.path.exists(result_path):
     raise FileExistsError(f"The directory '{result_path}' already exists.")
 
@@ -27,17 +28,17 @@ def save_trajectory(trajectory, episode_num, path):
     print(f"Trajectory for episode {episode_num} saved to {file_path}")
     
 def main():
-    env=RLEnv(random_flag=RANDOM)
+    env=RLEnv(random_flag=RANDOM,perfect=PERFECT)
     sucess=0
     step_schedule = []
     big_triangular = 0
     # if not TEST:
     #     big_triangular=200
-    epoch=10000
+    epoch=1000
     for i in range (big_triangular):
         step_schedule.append(1000)
     for i in range (epoch-big_triangular):
-        step_schedule.append(40)
+        step_schedule.append(50)
         
     for j in range(epoch):
         trajectory = [] 

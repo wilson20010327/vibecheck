@@ -7,7 +7,7 @@ import json
 
 TEST = True
 RANDOM = True
-result_path = './result/RL/Jan_29_simple/'
+result_path = './result/RL/Feb02_perfect_bad/'
 if not TEST and os.path.exists(result_path):
     raise FileExistsError(f"The directory '{result_path}' already exists.")
 elif not TEST:
@@ -43,6 +43,7 @@ def main():
         
         for i in range(step_schedule[j]):
             current = env.get_observation()
+            groundtruth=env.euler
             action,greedy = agent.act(current)
             next, reward, done, info = env.step(action)
             loss='none'
@@ -56,6 +57,7 @@ def main():
             # print('done:',done)
             trajectory.append({
                 'step': i,
+                'real_state': groundtruth,
                 'state': current.tolist() if isinstance(current, np.ndarray) else current,
                 'action': int(action),
                 'greedy': greedy,

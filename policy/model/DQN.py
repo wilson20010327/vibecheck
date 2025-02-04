@@ -32,8 +32,8 @@ class DQNAgent:
         self.gamma = gamma
         self.epsilon = epsilon
         self.tau=tau
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.999
+        self.epsilon_min = 0.1
+        self.epsilon_decay = 0.99999
         self.test=test
         self.result_path = result_path
         if self.test:

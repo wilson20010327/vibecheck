@@ -6,7 +6,7 @@ from transforms3d.euler import mat2euler
 import math
 from pynput import keyboard
 class RLEnv:
-    def __init__(self,random_flag=False):
+    def __init__(self,random_flag=False,perfect=False):
         self.current_state = [0,0] #[ x_count, z_count]
         self.euler=[0,0,0] # [x,y,z] unit:degree
         self.transformMatrix = np.eye(3,3)
@@ -16,10 +16,11 @@ class RLEnv:
             [78,22,0],
             [11,73,16],
             [2, 1,97]])
-        # self.predifction_confusion_matrix = np.array([
-        #     [1,0,0],
-        #     [0,1,0],
-        #     [0, 0,1]])
+        if perfect:
+            self.predifction_confusion_matrix = np.array([
+                [1,0,0],
+                [0,1,0],
+                [0, 0,1]])
         self.discrete_size=10
         self.observation=deque([[0,0,0] for i in range(10)],maxlen=10)
         self.observation_size = 30
@@ -32,7 +33,7 @@ class RLEnv:
         step_size = 45 / self.discrete_size
 
         # Generate random x and z values in multiples of step_size within [-180, 180]
-        x=random.randint(-45/step_size, 45/step_size)*step_size
+        x=random.randint(-45/step_size+1, 45/step_size-1)*step_size
         z=random.randint(-180/step_size, 180/step_size)*step_size
 
         # y is fixed to 0
@@ -125,7 +126,7 @@ class RLEnv:
         # print('after action euler:',self.euler)
         done = groundtruth_label == 2
         if done:
-            reward = 10
+            reward = 100
             return self.get_observation(), reward, 1, {}
         return self.get_observation(), reward, 0, {}
 if __name__=='__main__':
