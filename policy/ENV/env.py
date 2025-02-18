@@ -13,12 +13,48 @@ class RLEnv:
         self.labellist=['diagonal','one_line','in_hole']
         self.action_label = ['z','x','f']
         self.predifction_confusion_matrix = np.array([
-            [78,22,0],
-            [11,73,16],
-            [2, 1,97]])
+            [28,1,0],
+            [28,1,0],
+            [28,1,0],
+            [27,2,0],
+            [23,6,0],
+            [25,4,0],
+            [24,5,0],
+            [20,9,0],
+            [20,9,0],
+            [14,15,0],
+            [1,19,0],
+            [5,15,0],
+            [2,18,0],
+            [1,19,0],
+            [1,19,0],
+            [2,18,0],
+            [1,19,0],
+            [2,18,0],
+            [1,18,1],
+            [0,12,8],
+            [0, 5,195]])
         if perfect:
             self.predifction_confusion_matrix = np.array([
                 [1,0,0],
+                [1,0,0],
+                [1,0,0],
+                [1,0,0],
+                [1,0,0],
+                [1,0,0],
+                [1,0,0],
+                [1,0,0],
+                [1,0,0],
+                [1,0,0],
+                [0,1,0],
+                [0,1,0],
+                [0,1,0],
+                [0,1,0],
+                [0,1,0],
+                [0,1,0],
+                [0,1,0],
+                [0,1,0],
+                [0,1,0],
                 [0,1,0],
                 [0, 0,1]])
         self.discrete_size=10
@@ -33,7 +69,7 @@ class RLEnv:
         step_size = 45 / self.discrete_size
 
         # Generate random x and z values in multiples of step_size within [-180, 180]
-        x=random.randint(-45/step_size+1, 45/step_size-1)*step_size
+        x=random.randint(-1, 8)*step_size
         z=random.randint(-180/step_size, 180/step_size)*step_size
 
         # y is fixed to 0
@@ -54,12 +90,19 @@ class RLEnv:
             angle += 360
         return angle       
     def get_ground_truth_label(self,euler):
-        if euler[2]!=45 and euler[2]!=-45 and euler[2]!=135 and euler[2]!=-135:
-            return 0 # diagonal
-        elif euler[0]!= 45:
-            return 1 # one_line
+        if (euler[2]==45 or euler[2]==-45 or euler[2]==135 or euler[2]==-135) and euler[0]== 45:
+            return len(self.predifction_confusion_matrix)-1 # in_hole
+        elif euler[2]==45 or euler[2]==-45 or euler[2]==135 or euler[2]==-135:
+            temp=int(abs(euler[0])/4.5)+10
+            return temp # one_line
         else:
-            return 2 # in_hole
+            temp=abs(euler[2])
+            if (temp>90):
+                temp=180-temp
+            if(temp>45):
+                temp=90-temp
+            temp=int(temp/4.5)
+            return temp # in_hole
     def reset(self):
         self.current_state = [0,0] #[ x_count, z_count]
         self.euler=[0,0,0]
@@ -77,6 +120,7 @@ class RLEnv:
             next_euler[2]+=45/self.discrete_size
 
         elif action=='x':
+            if(next_euler[0]==45): return next_state,next_euler
             next_state[0]+=1
             next_euler[0]+=45/self.discrete_size
 
@@ -124,15 +168,15 @@ class RLEnv:
         
         groundtruth_label=self.model_detetion()
         # print('after action euler:',self.euler)
-        done = groundtruth_label == 2
+        done = groundtruth_label == len(self.predifction_confusion_matrix)-1
         if done:
             reward = 100
             return self.get_observation(), reward, 1, {}
         return self.get_observation(), reward, 0, {}
 if __name__=='__main__':
-    env = RLEnv()
+    env = RLEnv(perfect=True,random_flag=True)
     tot_reward = 0
-    action_map = {'z': 0, 'n': 1, 'x': 2, 'm': 3}
+    action_map = {'z': 0, 'x': 1, 'f': 2}
     def on_press(key):
         global tot_reward,action_map,env
         try:
@@ -142,7 +186,7 @@ if __name__=='__main__':
                 observation, reward, done, info = env.step(action)
                 tot_reward += reward
 
-                print(f"Observation: \n{observation}, \nReward: {reward}, \nTotal Reward: {tot_reward}, \nDone: {done}")
+                print(f"state :{env.euler} \nObservation: \n{observation}, \nReward: {reward}, \nTotal Reward: {tot_reward}, \nDone: {done}")
 
                 if done:
                     env.reset()

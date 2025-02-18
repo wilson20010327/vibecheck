@@ -5,12 +5,10 @@ import torch.optim as optim
 from ENV.env import RLEnv
 import pandas as pd
 import ast,os
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
 import numpy as np
-model_name='model_try-limit-init2016.pth'
+from collections import deque
+model_name='model_try0205.pth'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cpu")
 print(device)
 def save_trajectory(trajectory, episode_num, path):
     """Save trajectory to a JSON file."""
@@ -103,68 +101,61 @@ class MLP_Agent():
         self.model.load_state_dict(torch.load(self.result_path+model_name))
         self.model.eval()
         print('model loaded')
-        
+
+class Observation():
+    def __init__(self):
+        self.observation=deque([[0,0,0] for i in range(10)],maxlen=10)
+        self.observation_size=30
+    def append(self,observation):
+        temp=[0,0,0]
+        temp[observation]=1
+        self.observation.append(temp)
+    def get_observation(self):
+        return np.array(self.observation).flatten()
+    def reset(self):
+        self.observation=deque([[0,0,0] for i in range(10)],maxlen=10)
+        return
 if __name__ == '__main__':
-    # Define the model hyperparameters
-    # path="./result/IL/training/new-confusion-outdistribution-limit-init-0216/"
-    # folder_list = os.listdir(path)
-
-    # df_temp=print_original_plot(path=path)
-
-    # X=df_temp["state"]
-    # y=df_temp["action"].astype(int)
-    
-    # input_size=len(X.iloc[0])
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    # mlp_agant=MLP_Agent(input_size=input_size, output_size=5, hidden_size=128,result_path="./result/IL/training/")
-    # # mlp_agant.load_model()
-    # mlp_agant.train(X_train, y_train,epochs=100,batch_size=100)
-    # mlp_agant.save()
-    
-    # print("Classification Report:")
-    # X_test=mlp_agant.extract_input(X_test)
-    # print(classification_report(y_test, mlp_agant.act(X_test)))
-
-    
+   
+    obs=Observation()
     # interact with env
-    env=RLEnv(random_flag=True,perfect=False)
-    mlp_agant=MLP_Agent(input_size=env.observation_size, output_size=5, hidden_size=128,result_path="./result/IL/training/")
+    # env=RLEnv(random_flag=True,perfect=False)
+    result_path="./policy/" # path to the model parameters
+    mlp_agant=MLP_Agent(input_size=obs.observation_size, output_size=5, hidden_size=128,result_path=result_path)
     mlp_agant.load_model()
-    sucess=0
-    for j in range(1000):
-        trajectory = [] 
-        tot_reward = 0
-        env.reset()
+    # sucess=0
+    # for j in range(1000):
+    trajectory = [] 
+    # tot_reward = 0
+    # robot.reset()
+    pose=pose_model_detetion()
+    
+    if(pose ==2 ):
+        return
+    
+    obs.append(pose)
+    
+    current = obs.get_observation() # format =[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]"
+    # groundtruth=env.euler
+    # record=current
+    
+    # current=mlp_agant.extract_input([current])
+    action= mlp_agant.act(current) # [0]   action=[0]   action[0]=0
+    # next, reward, done, info = env.step(action[0])
+    robot_move(action[0])
+    
+    # tot_reward += reward
+
+    # trajectory.append({
+    #     'step': i,
+    #     'real_state': groundtruth,
+    #     'state': record.tolist() if isinstance(record, np.ndarray) else record,
+    #     'action': int(action),
+    #     'reward': reward,
+    #     'tot_reward': tot_reward,
+    #     'next_state': next.tolist() if isinstance(next, np.ndarray) else next,
+    #     'done': done,
+    # })
         
-        for i in range(50):
-            current = env.get_observation()
-            # print(current)
-            groundtruth=env.euler
-            record=current
-            current=mlp_agant.extract_input([current])
-            
-            action= mlp_agant.act(current)
-            # print('action:',action)
-            next, reward, done, info = env.step(action[0])
-            tot_reward += reward
-            # print('ground true:',env.euler)
-            # print('next:',next)
-            # print('reward:',reward)
-            # print('tot_reward:',tot_reward)
-            # print('done:',done)
-            trajectory.append({
-                'step': i,
-                'real_state': groundtruth,
-                'state': record.tolist() if isinstance(record, np.ndarray) else record,
-                'action': int(action),
-                'reward': reward,
-                'tot_reward': tot_reward,
-                'next_state': next.tolist() if isinstance(next, np.ndarray) else next,
-                'done': done,
-            })
-            if done:
-                sucess+=1
-                # print('sucess:',sucess)
-                break
-        # save_trajectory(trajectory, j, mlp_agant.result_path+"/../test/newconfustion/")
-    print('sucess:',sucess)
+
+   

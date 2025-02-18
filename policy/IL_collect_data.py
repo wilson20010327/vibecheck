@@ -8,7 +8,7 @@ import json
 
 RANDOM = True
 PERFECT=False
-result_path = './result/IL/training/non-perfect/'
+result_path = './result/IL/training/new-confusion-outdistribution-limit-init-0216/'
 if os.path.exists(result_path):
     raise FileExistsError(f"The directory '{result_path}' already exists.")
 
