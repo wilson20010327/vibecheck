@@ -8,7 +8,7 @@ import ast,os
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 import numpy as np
-model_name='model_try-limit-init2016.pth'
+model_name='model_try-limit-init2018.pth'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # device = torch.device("cpu")
 print(device)
@@ -106,7 +106,7 @@ class MLP_Agent():
         
 if __name__ == '__main__':
     # Define the model hyperparameters
-    # path="./result/IL/training/new-confusion-outdistribution-limit-init-0216/"
+    # path="./result/IL/training/new-confusion-outdistribution-limit-init-0218/"
     # folder_list = os.listdir(path)
 
     # df_temp=print_original_plot(path=path)
