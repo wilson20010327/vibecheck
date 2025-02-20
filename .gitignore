@@ -1,4 +1,5 @@
-result10/
+result/
 data/
 workspace/
 raw_data/
+.conda/
